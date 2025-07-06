@@ -1,44 +1,36 @@
 .footer {
-  margin-top: 4rem;
   padding: 1.5rem 1rem;
-  background-color: #f9f9f9;
-  border-top: 1px solid #ddd;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #fff;
   text-align: center;
+  border-top: 1px solid #444;
+  font-size: 0.95rem;
+  position: relative;
+  z-index: 10;
+  margin-top: auto; /* ✅ Add this line */
 }
 
 .footer-links {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .footer-links a {
-  color: #1976d2;
+  color: #ddd;
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.95rem;
   transition: color 0.3s ease;
 }
 
 .footer-links a:hover {
-  color: #0d47a1;
+  color: #00bcd4;
 }
 
 .footer-text {
-  color: #555;
+  margin: 0;
   font-size: 0.85rem;
-}
-
-/* ✅ Responsive for mobile */
-@media (max-width: 600px) {
-  .footer-links {
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
-  .footer-text {
-    font-size: 0.8rem;
-  }
+  color: #ccc;
 }

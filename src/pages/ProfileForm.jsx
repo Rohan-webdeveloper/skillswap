@@ -1,13 +1,13 @@
-// src/pages/ProfileForm.jsx
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import ProfileProgress from '../components/ProfileProgress'; // ✅ new
+import ProfileProgress from '../components/ProfileProgress';
 
 export default function ProfileForm() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
   const [form, setForm] = useState({
     full_name: '',
     bio: '',
@@ -15,6 +15,7 @@ export default function ProfileForm() {
     experience: '',
     portfolio: '',
     availability: 'Available',
+    profile_image: '', // ✅ using your actual DB column
   });
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function ProfileForm() {
         experience: data.experience || '',
         portfolio: data.portfolio || '',
         availability: data.availability || 'Available',
+        profile_image: data.profile_image || '',
       });
     }
     setLoading(false);
@@ -44,6 +46,35 @@ export default function ProfileForm() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrl } = supabase
+        .storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setForm({ ...form, profile_image: publicUrl.publicUrl });
+    } catch (err) {
+      alert('❌ Upload failed');
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -67,11 +98,25 @@ export default function ProfileForm() {
   return (
     <div style={styles.container}>
       <h2>My Profile</h2>
-
-      {/* ✅ Progress Bar */}
       <ProfileProgress profile={form} />
 
+      {form.profile_image && (
+        <img
+          src={form.profile_image}
+          alt="Profile"
+          style={styles.avatar}
+        />
+      )}
+
       <form onSubmit={handleSubmit} style={styles.form}>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleUpload}
+          disabled={uploading}
+          style={styles.fileInput}
+        />
+
         <input
           type="text"
           name="full_name"
@@ -149,6 +194,14 @@ const styles = {
     flexDirection: 'column',
     gap: '1rem',
   },
+  avatar: {
+    width: '120px',
+    height: '120px',
+    objectFit: 'cover',
+    borderRadius: '50%',
+    margin: '1rem auto',
+    border: '3px solid #1976d2',
+  },
   input: {
     padding: '10px',
     fontSize: '16px',
@@ -161,6 +214,10 @@ const styles = {
     height: '100px',
     borderRadius: '6px',
     border: '1px solid #ccc',
+  },
+  fileInput: {
+    padding: '10px',
+    fontSize: '14px',
   },
   button: {
     background: '#1976d2',
